@@ -1,7 +1,5 @@
 package com.sentinel.discovery;
 
-import com.sentinel.config.ConfigException;
-import com.sentinel.config.EnvConfig;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -13,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,7 +23,7 @@ import org.json.JSONTokener;
  * 
  * @author Andy Trimble
  */
-public class Discovery extends Thread {
+public class Discovery {
     private MulticastSocket socket;
     private InetAddress group;
 
@@ -42,15 +41,10 @@ public class Discovery extends Thread {
      * @throws com.sentinel.discovery.DiscoveryException
      */
     public Discovery(String role) throws DiscoveryException {
-        try {
-            EnvConfig.load(Configuration.class);
-        } catch (ConfigException ex) {
-            throw new DiscoveryException("Cannot load configuration.", ex);
-        }
-
         String ip = NetworkUtil.getIp();
 
-        me = new Actor(role, ip);
+        UUID uuid = UUID.randomUUID();
+        me = new Actor(role, ip, uuid.toString());
         cache.put(me.key(), me);
 
         try {
@@ -62,11 +56,6 @@ public class Discovery extends Thread {
 
     public void addDiscoveryListener(DiscoveryListener l) {
         listeners.add(l);
-    }
-
-    @Override
-    public final void start() {
-        super.start();
     }
 
     /**
@@ -107,28 +96,43 @@ public class Discovery extends Thread {
         socket.setTimeToLive(Configuration.TTL);
         group = InetAddress.getByName(Configuration.GROUP);
         socket.joinGroup(new InetSocketAddress(group, Configuration.PORT), NetworkUtil.getNetworkInterface());
-        
-        sendMessage(me.toJSON());
     }
 
     /**
      * Run the multicast listener.
      */
-    @Override
-    public void run() {
+    public void start() {
         byte[] buf = new byte[512];
 
+        new Thread() {
+            @Override
+            public void run() {
+                for(int i = 0; i < Configuration.ANNOUNCE_COUNT; ++i) {
+                    // Allow the listener to start so we receive announcements
+                    try {
+                        Thread.sleep(Configuration.ANNOUNCE_WAIT);
+                    } catch (InterruptedException ex) { }
+
+                    try {
+                        sendMessage(me.toJSON());
+                    } catch (IOException ex) { }
+                }
+            }
+        }.start();
+
         while(running) {
-            DatagramPacket packet;
-            packet = new DatagramPacket(buf, buf.length);
+            DatagramPacket packet = new DatagramPacket(buf, buf.length);
             packet.getLength();
             try {
                 socket.receive(packet);
-                threadPool.invokeAll(Collections.singletonList(Executors.callable(() -> {
-                    try {
-                        processMessage(Arrays.copyOf(packet.getData(), packet.getLength()));
-                    } catch (IOException ex) {
-                        
+                threadPool.invokeAll(Collections.singletonList(Executors.callable(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            processMessage(Arrays.copyOf(packet.getData(), packet.getLength()));
+                        } catch (IOException ex) {
+                            
+                        }
                     }
                 })));
             } catch(SocketException ex) {
@@ -144,17 +148,17 @@ public class Discovery extends Thread {
         JSONTokener tokener = new JSONTokener(new String(bytes));
         JSONObject root = new JSONObject(tokener);
         Actor actor = Actor.fromJSON(root);
-        if(!actorKnown(actor)) {
+        if(cache.get(actor.key()) == null) {
             cache.put(actor.key(), actor);
             sendMessage(me.toJSON());
-            listeners.forEach((l) -> {
+            for(final DiscoveryListener l : listeners) {
                 l.discovered(actor);
-            });
+            };
         }
     }
 
     /**
-     * Send a gossip message over multicast.
+     * Send a message over multicast.
      * 
      * @param message a message.
      * @throws IOException in case of a sending error.
@@ -163,9 +167,5 @@ public class Discovery extends Thread {
         byte[] bytes = message.getBytes();
         DatagramPacket packet = new DatagramPacket(bytes, bytes.length, group, Configuration.PORT);
         socket.send(packet);
-    }
-
-    private boolean actorKnown(Actor actor) {
-        return cache.get(actor.key()) != null;
     }
 }

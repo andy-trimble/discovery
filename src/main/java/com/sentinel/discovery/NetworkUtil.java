@@ -62,6 +62,16 @@ public class NetworkUtil {
         return inetAddress;
     }
 
+    public static boolean hasNIC() throws DiscoveryException {
+        try {
+            nic = NetworkInterface.getByName(Configuration.NETWORK_INTERFACE);
+        } catch (SocketException ex) {
+            throw new DiscoveryException("Unable to determine IP address", ex);
+        }
+
+        return nic != null;
+    }
+
     private static void findNIC() throws DiscoveryException {
         try {
             nic = NetworkInterface.getByName(Configuration.NETWORK_INTERFACE);

@@ -5,22 +5,20 @@
  */
 package com.sentinel.discovery;
 
-import com.sentinel.config.Config;
-
 /**
  *
  * @author atrimble
  */
 public class Configuration {
-    @Config(name = "DISCOVERY_NETWORK_INTERFACE", defaultValue = "eth0")
-    public static String NETWORK_INTERFACE;
+    public static String NETWORK_INTERFACE = "eth0";
 
-    @Config(name = "DISCOVERY_GROUP", defaultValue = "239.0.0.1")
-    public static String GROUP;
+    public static String GROUP = "230.1.1.1";
 
-    @Config(name = "DISCOVERY_PORT", defaultValue = "8989")
-    public static int PORT;
+    public static int PORT = 8989;
     
-    @Config(name = "DISCOVERY_TTL", defaultValue = "1")
-    public static int TTL;
+    public static int TTL = 1;
+
+    public static int ANNOUNCE_COUNT = 6;
+    
+    public static long ANNOUNCE_WAIT = 500;
 }

@@ -14,10 +14,12 @@ import org.json.JSONObject;
 public class Actor {
     private final String role;
     private final String ip;
+    private final String id;
 
-    public Actor(String role, String ip) {
+    public Actor(String role, String ip, String id) {
         this.role = role;
         this.ip = ip;
+        this.id = id;
     }
 
     public String getRole() {
@@ -28,12 +30,16 @@ public class Actor {
         return ip;
     }
 
+    public String getID() {
+        return id;
+    }
+
     public String toJSON() {
-        return String.format("{\"role\":\"%s\",\"ip\":\"%s\"}", role, ip);
+        return String.format("{\"role\":\"%s\",\"ip\":\"%s\",\"id\":\"%s\"}", role, ip, id);
     }
 
     public static Actor fromJSON(JSONObject root) {
-        return new Actor(root.getString("role"), root.getString("ip"));
+        return new Actor(root.getString("role"), root.getString("ip"), root.getString("id"));
     }
 
     @Override
@@ -42,6 +48,6 @@ public class Actor {
     }
 
     public String key() {
-        return String.format("%s:%s", role, ip);
+        return String.format("%s:%s:%s", role, ip, id);
     }
 }
