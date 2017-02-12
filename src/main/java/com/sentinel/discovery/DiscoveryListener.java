@@ -1,14 +1,15 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.sentinel.discovery;
 
 /**
- *
- * @author atrimble
+ * A callback interface for discovery events.
+ * 
+ * @author Andrew Trimble
  */
 public interface DiscoveryListener {
+    /**
+     * Method called when a new actor is discovered.
+     * 
+     * @param actor the discovered actor
+     */
     void discovered(Actor actor);
 }

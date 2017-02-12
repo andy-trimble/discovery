@@ -37,7 +37,8 @@ public class Discovery {
 
     /**
      * Constructor.
-     * @param role
+     * 
+     * @param role the role for this actor
      * @throws com.sentinel.discovery.DiscoveryException
      */
     public Discovery(String role) throws DiscoveryException {
@@ -54,6 +55,11 @@ public class Discovery {
         }
     }
 
+    /**
+     * Register a discovery callback object.
+     * 
+     * @param l a listener
+     */
     public void addDiscoveryListener(DiscoveryListener l) {
         listeners.add(l);
     }
@@ -68,6 +74,7 @@ public class Discovery {
 
     /**
      * Setup the multicast facilities.
+     * 
      * @throws java.io.IOException
      */
     private void setupNetworking() throws IOException, DiscoveryException {
@@ -144,6 +151,12 @@ public class Discovery {
         }
     }
 
+    /**
+     * Process a raw UDP message.
+     * 
+     * @param bytes the UDP message
+     * @throws IOException 
+     */
     private void processMessage(byte[] bytes) throws IOException {
         JSONTokener tokener = new JSONTokener(new String(bytes));
         JSONObject root = new JSONObject(tokener);

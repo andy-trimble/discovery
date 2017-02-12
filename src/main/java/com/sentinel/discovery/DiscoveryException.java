@@ -1,13 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.sentinel.discovery;
 
 /**
- *
- * @author atrimble
+ * An exception to be thrown in the event of an issue with discovery.
+ * 
+ * @author Andrew Trimble
  */
 public class DiscoveryException extends Exception {
 
@@ -28,6 +24,13 @@ public class DiscoveryException extends Exception {
         super(msg);
     }
 
+    /**
+     * Create a new instance of <code>DiscoveryException</code> with a detail
+     * message and a cause.
+     * 
+     * @param msg a detail message
+     * @param cause the cause of the exception
+     */
     public DiscoveryException(String msg, Throwable cause) {
         super(msg, cause);
     }
