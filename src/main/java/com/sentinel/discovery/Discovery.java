@@ -15,8 +15,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 /**
  * A discovery protocol implemented using multicast.
@@ -46,13 +44,22 @@ public class Discovery {
 
         UUID uuid = UUID.randomUUID();
         me = new Actor(role, ip, uuid.toString());
-        cache.put(me.key(), me);
+        cache.put(me.getID(), me);
 
         try {
             setupNetworking();
         } catch(IOException ex) {
             throw new DiscoveryException("Cannot setup network.", ex);
         }
+    }
+
+    /**
+     * Get the current actor.
+     * 
+     * @return me
+     */
+    public Actor me() {
+        return me;
     }
 
     /**
@@ -129,7 +136,6 @@ public class Discovery {
 
         while(running) {
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
-            packet.getLength();
             try {
                 socket.receive(packet);
                 threadPool.invokeAll(Collections.singletonList(Executors.callable(new Runnable() {
@@ -158,15 +164,14 @@ public class Discovery {
      * @throws IOException 
      */
     private void processMessage(byte[] bytes) throws IOException {
-        JSONTokener tokener = new JSONTokener(new String(bytes));
-        JSONObject root = new JSONObject(tokener);
-        Actor actor = Actor.fromJSON(root);
-        if(cache.get(actor.key()) == null) {
-            cache.put(actor.key(), actor);
+        Actor actor = Actor.fromJSON(new String(bytes));
+
+        if(!cache.containsKey(actor.getID())) {
+            cache.put(actor.getID(), actor);
             sendMessage(me.toJSON());
-            for(final DiscoveryListener l : listeners) {
+            listeners.forEach((l) -> {
                 l.discovered(actor);
-            };
+            });
         }
     }
 

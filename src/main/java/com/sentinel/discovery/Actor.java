@@ -1,7 +1,5 @@
 package com.sentinel.discovery;
 
-import org.json.JSONObject;
-
 /**
  * Actor defines a discovered member in the cluster. It is defined as a role,
  * IP address, and unique identifier.
@@ -70,11 +68,27 @@ public class Actor {
     /**
      * Construct an actor from a JSON string.
      * 
-     * @param root the JSON object's root
+     * @param json the JSON string
      * @return an Actor
      */
-    public static Actor fromJSON(JSONObject root) {
-        return new Actor(root.getString("role"), root.getString("ip"), root.getString("id"));
+    public static Actor fromJSON(String json) {
+        String role = "";
+        String ip = "";
+        String id = "";
+        String[] pairs = json.replaceAll("\\{", "").split(",");
+        for(String s : pairs) {
+            String[] kv = s.split("\\:");
+            String key = kv[0].replaceAll("\"", "");
+            String value = kv[1].replaceAll("\"", "");
+            if("role".equalsIgnoreCase(key)) {
+                role = value;
+            } else if("ip".equalsIgnoreCase(key)) {
+                ip = value;
+            } else if("id".equalsIgnoreCase(key)) {
+                id = value;
+            }
+        }
+        return new Actor(role, ip, id);
     }
 
     /**
@@ -85,14 +99,5 @@ public class Actor {
     @Override
     public String toString() {
         return toJSON();
-    }
-
-    /**
-     * A unique identifier composed of the role, IP, and ID of this actor.
-     * 
-     * @return a unique key
-     */
-    public String key() {
-        return String.format("%s:%s:%s", role, ip, id);
     }
 }
