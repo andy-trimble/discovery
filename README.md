@@ -1,6 +1,8 @@
 # discovery
 Multicast Discovery in Java.
 
+[![Build Status](https://travis-ci.org/andy-trimble/discovery.svg?branch=master)](https://travis-ci.org/andy-trimble/discovery)
+
 Basic Usage:
 ```Java
 Discovery d = new Discovery("server");
