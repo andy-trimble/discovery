@@ -8,6 +8,10 @@ d.addDiscoveryListener((Actor actor) -> {
     System.out.println("Discovered new actor: " + actor.toString());
 });
 d.start();
+
+// Do some stuff
+
+d.shutdown();
 ```
 By default, the discovery mechanism listens on the network interface eth0. In order to change this behavior do the following:
 
